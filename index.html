@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>ДМБ Шоп</title>
+  <style>
+    :root { color-scheme: light; }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+      background: transparent;
+    }
+    .card {
+      background: #fff;
+      border-radius: 28px;
+      padding: 18px 16px 16px;
+    }
+    .logo {
+      width: 62px;
+      height: 62px;
+      border-radius: 50%;
+      object-fit: cover;
+      display: block;
+      margin: 0 auto 12px;
+      border: 1px solid rgba(180, 0, 0, 0.15);
+    }
+    h1 {
+      margin: 0;
+      text-align: center;
+      font-size: 26px;
+      letter-spacing: -0.3px;
+    }
+    .subtitle {
+      margin: 6px 0 0;
+      text-align: center;
+      color: #737378;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .products {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 16px 0;
+    }
+    .product {
+      background: #f8f8f9;
+      border-radius: 20px;
+      padding: 8px;
+    }
+    .product img {
+      width: 100%;
+      height: 132px;
+      object-fit: cover;
+      border-radius: 16px;
+      display: block;
+    }
+    .product p {
+      margin: 8px 2px 4px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      text-align: center;
+      text-decoration: none;
+      background: #b40000;
+      color: #fff;
+      font-weight: 600;
+      font-size: 16px;
+      padding: 14px 16px;
+      border-radius: 999px;
+    }
+  </style>
+</head>
+<body>
+  <!--
+    КАК ПОМЕНЯТЬ БЕЗ КОДА:
+    1. GitHub → папка docs
+    2. Карандаш у index.html — меняй title, subtitle, button, products
+    3. Новые фото: залей в docs (album.jpg, bear.jpg) с теми же именами
+       или поменяй имя файла в products.image
+  -->
+  <script>
+    const CONFIG = {
+      title: "ДМБ Шоп",
+      subtitle: "Подарки, которые ждут вместе с тобой",
+      buttonText: "Перейти в магазин",
+      buttonLink: "https://t.me/dmb_shopp",
+      logo: "logo.jpg",
+      products: [
+        { image: "album.jpg", title: "Дембельский альбом" },
+        { image: "bear.jpg", title: "Вязаный мишка" }
+      ]
+    };
+
+    document.write(`
+      <div class="card">
+        <img class="logo" src="${CONFIG.logo}" alt="" />
+        <h1>${CONFIG.title}</h1>
+        <p class="subtitle">${CONFIG.subtitle}</p>
+        <div class="products">
+          ${CONFIG.products.map(p => `
+            <div class="product">
+              <img src="${p.image}" alt="${p.title}" />
+              <p>${p.title}</p>
+            </div>
+          `).join("")}
+        </div>
+        <a class="btn" href="${CONFIG.buttonLink}">${CONFIG.buttonText}</a>
+      </div>
+    `);
+  </script>
+</body>
+</html>
