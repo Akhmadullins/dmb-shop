@@ -15,8 +15,75 @@
     }, 180);
   }
 
+  var steps = {
+    cover: "01 Обложка",
+    open: "02 Начало",
+    outfit: "03 Одежда",
+    ring: "04 Звонок",
+    hello: "05 Алло",
+    reply: "06 Что сказать",
+    said_here: "07 Ответ",
+    said_quiet: "07 Ответ",
+    said_hold: "07 Ответ",
+    woman: "08 Голос",
+    woman_known: "08 Голос",
+    answer: "09 Что сделать",
+    end_who: "10 После звонка",
+    end_hang: "10 После звонка",
+    end_wait: "10 После звонка",
+    floor: "11 Стук",
+    door: "12 Дверь",
+    reason: "13 Кухня",
+    hold: "14 Не просыпайся",
+    morning: "15 Утро"
+  };
+
+  var screens = {
+    cover: "01 Обложка",
+    open: "02 Начало",
+    outfit: "03 Одежда",
+    ring: "04 Звонок",
+    hello: "05 Алло",
+    reply: "06 Что сказать",
+    said_here: "07 Я тут",
+    said_quiet: "07 Молчу",
+    said_hold: "07 Не клади трубку",
+    woman: "08 Чужой голос",
+    woman_known: "08 Уже слышала",
+    answer: "09 Что сделать",
+    end_who: "10 Кто там",
+    end_hang: "10 Положила трубку",
+    end_wait: "10 Подожду",
+    floor: "11 Стук",
+    door: "12 Дверь",
+    reason: "13 Кухня",
+    hold: "14 Не просыпайся",
+    morning: "15 Утро"
+  };
+
+  var outfits = { shirt: "Его футболка", dress: "Красное платье", hoodie: "Худи" };
+  var replies = { said_here: "Я тут", said_quiet: "Молчу", said_hold: "Не клади трубку" };
+  var answers = { end_who: "Кто там", end_hang: "Положила трубку", end_wait: "Подожду" };
+
+  function track(id) {
+    var step = steps[id];
+    if (!step) return;
+    var data = { "Шаг": step, "Экран": screens[id] || step };
+    var choice = outfits[state.outfit] && id === "ring" ? outfits[state.outfit] : replies[id] || answers[id];
+    if (choice) data["Выбор"] = choice;
+    ensureStory();
+    if (typeof ym !== "function") return;
+    ym(114415095, "params", data);
+    ym(114415095, "reachGoal", "step_" + step.slice(0, 2));
+    if (location.pathname.indexOf("dmb-shop") !== -1) {
+      ym(113666212, "params", data);
+      ym(113666212, "reachGoal", "step_" + step.slice(0, 2));
+    }
+  }
+
   function draw(id) {
     const scene = window.sceneById(id, state);
+    track(id);
     stage.replaceChildren();
     if (scene.type === "cover") {
       drawCover(scene);
