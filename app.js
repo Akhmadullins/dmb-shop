@@ -127,7 +127,9 @@
 
   function goal(name) {
     ensureStory();
-    if (typeof ym === "function") ym(114415095, "reachGoal", name);
+    if (typeof ym !== "function") return;
+    ym(114415095, "reachGoal", name);
+    if (location.pathname.indexOf("dmb-shop") !== -1) ym(113666212, "reachGoal", name);
   }
 
   function drawMorning(scene) {
@@ -220,5 +222,6 @@
     return node;
   }
 
+  if (location.pathname.indexOf("dmb-shop") !== -1) ensureStory();
   draw("cover");
 })();
