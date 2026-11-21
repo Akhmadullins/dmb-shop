@@ -230,14 +230,13 @@
     coda.hidden = true;
     stage.append(coda);
 
-    const next = el("button", "go next-episode", "Читать 2 серию");
-    next.type = "button";
-    next.addEventListener("click", function () {
-      if (next.disabled) return;
-      goal("episode2");
-      next.disabled = true;
-      next.textContent = "Вторая серия ещё пишется";
-    });
+    const next = document.createElement("a");
+    next.className = "go next-episode";
+    next.href = "https://t.me/dmbromance";
+    next.target = "_blank";
+    next.rel = "noopener";
+    next.textContent = "Вместе ждать продолжение";
+    next.addEventListener("click", function () { goal("episode2"); });
     stage.append(next);
 
     const mail = document.createElement("a");

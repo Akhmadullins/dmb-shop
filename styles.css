@@ -381,7 +381,10 @@ h1 {
 }
 
 .next-episode {
+  display: block;
   margin-top: 18px;
+  text-align: center;
+  text-decoration: none;
 }
 
 .coda {
