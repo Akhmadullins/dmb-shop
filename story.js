@@ -10,7 +10,7 @@ const scenes = {
   cover: {
     type: "cover",
     label: "ДМБ клуб романтики",
-    image: "cover2.jpg",
+    image: "cover3.jpg",
     next: "open",
     cta: "Читать"
   },
