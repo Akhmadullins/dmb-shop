@@ -170,7 +170,7 @@ h1 {
   bottom: 0;
   margin-top: auto;
   padding-top: 22px;
-  background: linear-gradient(to top, rgba(16, 14, 12, 0.96) 62%, rgba(16, 14, 12, 0));
+  background: linear-gradient(to top, #ffffff 62%, rgba(255, 255, 255, 0));
 }
 
 .go, .answer, .send {
