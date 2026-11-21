@@ -15,7 +15,7 @@
 html, body {
   margin: 0;
   min-height: 100%;
-  background: var(--room);
+  background: #1a120e;
   color: var(--ink);
 }
 
@@ -61,24 +61,42 @@ button {
   transform: translateY(8px);
 }
 
+.stage:has(.cover) {
+  padding: 0 0 max(16px, env(safe-area-inset-bottom));
+  background: #1a120e;
+}
+
 .cover { display: flex; flex-direction: column; }
 
 .poster-label {
-  margin: 0 0 14px;
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  right: 16px;
+  z-index: 1;
+  margin: 0;
   text-align: center;
   font-size: 13px;
   font-weight: 650;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--lamp);
+  color: #f3ecdf;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.55);
 }
+
+.cover { position: relative; }
 
 .poster {
   width: 100%;
   height: auto;
-  border-radius: 24px;
+  border-radius: 0 0 22px 22px;
   display: block;
-  margin: 0 0 18px;
+  margin: 0 0 14px;
+}
+
+.cover .go {
+  width: auto;
+  margin: 0 16px;
 }
 
 .kicker {
