@@ -240,6 +240,13 @@
     });
     stage.append(next);
 
+    const mail = document.createElement("a");
+    mail.className = "mail";
+    mail.href = "mailto:wshp.no1@gmail.com?subject=" + encodeURIComponent("Потом объясню");
+    mail.textContent = "Написать, что думаешь";
+    mail.addEventListener("click", function () { goal("comment"); });
+    stage.append(mail);
+
     const again = el("button", "again", "Сначала");
     again.type = "button";
     again.addEventListener("click", function () {
@@ -288,6 +295,15 @@
     if (text) node.textContent = text;
     return node;
   }
+
+  const browser = document.createElement("a");
+  browser.className = "browser";
+  browser.href = location.origin + location.pathname;
+  browser.target = "_blank";
+  browser.rel = "noopener";
+  browser.textContent = "В браузере";
+  browser.addEventListener("click", function () { goal("browser"); });
+  document.body.append(browser);
 
   if (location.pathname.indexOf("dmb-shop") !== -1) ensureStory();
   draw("cover");
