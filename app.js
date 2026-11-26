@@ -1,7 +1,7 @@
 (function () {
   const stage = document.querySelector("#stage");
   const state = { outfit: null, reply: null, answer: null, ask: null, proof: null };
-  var PAY_URL = "";
+  var PAY_URL = "https://yookassa.ru/my/i/awirwm5QgFLx/l";
   let lock = false;
 
   function save() {
