@@ -3,6 +3,11 @@ window.sceneById = function sceneById(id, state) {
   if (id === "reason") return reason(state);
   if (id === "hold") return hold(state);
   if (id === "morning") return morning(state);
+  if (id === "back") return back(state);
+  if (id === "token") return token(state);
+  if (id === "know") return know(state);
+  if (id === "keep") return keep(state);
+  if (id === "night") return night(state);
   return scenes[id];
 };
 
@@ -320,4 +325,188 @@ function morning(state) {
     { type: "p", text: "Телефон тёплый от ладони. Одно сообщение." }
   );
   return { type: "morning", kicker: "Утро", blocks };
+}
+
+scenes.day = {
+  type: "prose",
+  kicker: "День",
+  blocks: [
+    { type: "p", text: "14:06. «Это был сон?» так и висит в строке. Ты стираешь вопрос по одной букве. Кружку моешь второй раз. Пуговицу кладёшь в карман халата, ниткой внутрь." },
+    { type: "p", text: "До обеда ты не звонишь. Он сам написал: после обеда, до шести." },
+    { type: "p", text: "В 14:11 палец сам находит его имя." }
+  ],
+  next: "call2",
+  cta: "Позвонить"
+};
+
+scenes.call2 = {
+  type: "call",
+  kicker: "14:11",
+  name: "Серёжа",
+  status: "мобильный",
+  next: "ask2",
+  cta: "Позвонить"
+};
+
+scenes.ask2 = {
+  type: "lines",
+  kicker: "День",
+  prompt: "Что сказать",
+  options: [
+    { text: "Ты был у меня.", set: { ask: "was" }, next: "was" },
+    { text: "Мне приснился ты.", set: { ask: "dream" }, next: "dream" },
+    { text: "Просто звоню.", set: { ask: "just" }, next: "just" }
+  ]
+};
+
+scenes.was = {
+  type: "prose",
+  kicker: "На линии",
+  blocks: [
+    { type: "p", text: "Он молчит дольше, чем молчат, когда не расслышали. Рядом кто-то смеётся, и смех обрывается, будто человеку закрыли рот ладонью." },
+    { type: "say", who: "Серёжа", text: "С этой трубы не надо." },
+    { type: "p", text: "Ткань цепляется за что-то твёрдое. Короткий стук, мелкий, металл о металл. Пуговица в твоём кармане в этот момент молчит." },
+    { type: "say", who: "Серёжа", text: "Я перезвоню. Не с этого номера." }
+  ],
+  next: "price",
+  cta: "Дальше"
+};
+
+scenes.dream = {
+  type: "prose",
+  kicker: "На линии",
+  blocks: [
+    { type: "say", who: "Серёжа", text: "Хороший хоть?" },
+    { type: "p", text: "Ты не успеваешь ответить. Он смеётся на полсекунды позже, чем смеются над чужим сном." },
+    { type: "say", who: "Серёжа", text: "Ладно. Не рассказывай тут." },
+    { type: "p", text: "Ткань, потом мелкий стук. Он прикрывает трубку слишком поздно: ты уже слышала." },
+    { type: "say", who: "Серёжа", text: "Наберу сам. Другой номер, не пугайся." }
+  ],
+  next: "price",
+  cta: "Дальше"
+};
+
+scenes.just = {
+  type: "prose",
+  kicker: "На линии",
+  blocks: [
+    { type: "say", who: "Серёжа", text: "Я думал, ты спишь днём." },
+    { type: "p", text: "Голос обычный, светлый. От этого в кухне становится теснее." },
+    { type: "say", who: "Серёжа", text: "У меня пять минут. Говори первая." },
+    { type: "p", text: "Ты говоришь про кружку. Он обрывает тебя на слове «пол»." },
+    { type: "say", who: "Серёжа", text: "Не сейчас. Я наберу сам." }
+  ],
+  next: "price",
+  cta: "Дальше"
+};
+
+scenes.price = {
+  type: "price",
+  kicker: "Вторая серия",
+  sum: "249 ₽",
+  note: "Дальше он перезванивает не с этого телефона.",
+  next: "back"
+};
+
+function back(state) {
+  const blocks = [
+    { type: "p", text: "16:40. Неизвестный номер. Ты берёшь на втором гудке. Тишина здесь дороже, чем в казарме. Слышно, как он дышит носом." },
+    { type: "say", who: "Серёжа", text: "Это я. Тут можно." }
+  ];
+  if (state.ask === "was") {
+    blocks.push({ type: "say", who: "Серёжа", text: "Ты спросила, был ли я. До двух я был на наряде. Могу сказать, кто видел." });
+  } else if (state.ask === "dream") {
+    blocks.push({ type: "say", who: "Серёжа", text: "Ты сказала, сон. Расскажи, чем он кончился. Я проверю." });
+  } else {
+    blocks.push({ type: "say", who: "Серёжа", text: "Ты звонила ни о чём. Ты так не звонишь." });
+  }
+  const worn = {
+    shirt: "На тебе была моя футболка. Ворот ещё хуже, чем я помню. И руки ты мне грела. Я их до сих пор не чувствую.",
+    dress: "Красное. Я его раньше не видел. Если это был сон, откуда я знаю цвет.",
+    hoodie: "Ты не красилась. И не ложилась. Я это не должен был сказать вслух."
+  };
+  blocks.push({ type: "say", who: "Серёжа", text: worn[state.outfit] || worn.shirt });
+  blocks.push({ type: "p", text: "Он замолкает так, будто фраза вышла без разрешения." });
+  return {
+    type: "prose",
+    paid: true,
+    kicker: "16:40",
+    blocks: blocks,
+    next: "press2",
+    cta: "Дальше"
+  };
+}
+
+scenes.press2 = {
+  type: "lines",
+  paid: true,
+  kicker: "16:40",
+  prompt: "Что сказать",
+  options: [
+    { text: "У меня твоя пуговица.", set: { proof: "button" }, next: "token" },
+    { text: "Откуда ты знаешь.", set: { proof: "how" }, next: "know" },
+    { text: "Не клади трубку.", set: { proof: "stay" }, next: "keep" }
+  ]
+};
+
+function token() {
+  return {
+    type: "prose",
+    paid: true,
+    kicker: "16:40",
+    blocks: [
+      { type: "p", text: "Ты говоришь про пуговицу. Нитка на языке кажется длиннее, чем была в пальцах." },
+      { type: "p", text: "Серёжа молчит. Потом очень тихо." },
+      { type: "say", who: "Серёжа", text: "Не держи её в кармане. Она пачкает." },
+      { type: "p", text: "Ты не говорила, что она в кармане." }
+    ],
+    next: "night",
+    cta: "Дальше"
+  };
+}
+
+function know() {
+  return {
+    type: "prose",
+    paid: true,
+    kicker: "16:40",
+    blocks: [
+      { type: "say", who: "Серёжа", text: "Не знаю. Поэтому и боюсь, что знаю." },
+      { type: "say", who: "Серёжа", text: "Если я был, меня не выпускали. Если не был, я всё равно помню твой коврик. Оба варианта плохие. Выбери мне какой-нибудь третий." },
+      { type: "p", text: "Третьего у тебя нет. Трубка греет ухо." }
+    ],
+    next: "night",
+    cta: "Дальше"
+  };
+}
+
+function keep() {
+  return {
+    type: "prose",
+    paid: true,
+    kicker: "16:40",
+    blocks: [
+      { type: "p", text: "Ты просишь не класть. Он не кладёт. Слышно, как где-то далеко хлопает дверь, уже не ваша." },
+      { type: "say", who: "Серёжа", text: "Завтра телефон снова не мой. Если после отбоя придёт сообщение не с этого номера, не показывай маме. Ответь мне." },
+      { type: "say", who: "Серёжа", text: "И не пиши, что это был сон. Сообщение не ушло. Строка всё равно у меня перед глазами." }
+    ],
+    next: "night",
+    cta: "Дальше"
+  };
+}
+
+function night() {
+  return {
+    type: "prose",
+    paid: true,
+    kicker: "Ночь",
+    blocks: [
+      { type: "p", text: "Пуговица лежит на ладони. Нитка влажная." },
+      { type: "p", text: "Неизвестного номера в списке нет. Вызов не сохранился, как не сохранился ночной." },
+      { type: "p", text: "Следы на линолеуме высохли по краям. Ты их не трогаешь." },
+      { type: "p", text: "В 23:40 приходит пустое сообщение. Ни буквы. Номер, которого нет в контактах. Только время." }
+    ],
+    next: "cover",
+    cta: "Сначала"
+  };
 }

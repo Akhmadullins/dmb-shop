@@ -1,7 +1,12 @@
 (function () {
   const stage = document.querySelector("#stage");
-  const state = { outfit: null, reply: null, answer: null };
+  const state = { outfit: null, reply: null, answer: null, ask: null, proof: null };
+  var PAY_URL = "";
   let lock = false;
+
+  function save() {
+    try { sessionStorage.setItem("dmb-state", JSON.stringify(state)); } catch (e) {}
+  }
 
   function go(id) {
     if (lock) return;
@@ -12,6 +17,7 @@
       stage.scrollTop = 0;
       stage.classList.remove("is-out");
       lock = false;
+      save();
     }, 180);
   }
 
@@ -35,7 +41,20 @@
     door: "12 Дверь",
     reason: "13 Кухня",
     hold: "14 Не просыпайся",
-    morning: "15 Утро"
+    morning: "15 Утро",
+    day: "16 День",
+    call2: "17 Днём",
+    ask2: "18 Что сказать днём",
+    was: "19 Обрыв",
+    dream: "19 Обрыв",
+    just: "19 Обрыв",
+    price: "20 Прайс",
+    back: "21 Перезвон",
+    press2: "22 Что ответить",
+    token: "23 Пуговица",
+    know: "23 Откуда",
+    keep: "23 Не клади",
+    night: "24 Ночь"
   };
 
   var screens = {
@@ -58,18 +77,33 @@
     door: "12 Дверь",
     reason: "13 Кухня",
     hold: "14 Не просыпайся",
-    morning: "15 Утро"
+    morning: "15 Утро",
+    day: "16 День",
+    call2: "17 Днём",
+    ask2: "18 Что сказать днём",
+    was: "19 Ты был у меня",
+    dream: "19 Мне приснился",
+    just: "19 Просто звоню",
+    price: "20 Прайс",
+    back: "21 Перезвон",
+    press2: "22 Что ответить",
+    token: "23 Пуговица",
+    know: "23 Откуда",
+    keep: "23 Не клади",
+    night: "24 Ночь"
   };
 
   var outfits = { shirt: "Его футболка", dress: "Красное платье", hoodie: "Худи" };
   var replies = { said_here: "Я тут", said_quiet: "Молчу", said_hold: "Не клади трубку" };
+  var asks = { was: "Ты был у меня", dream: "Мне приснился", just: "Просто звоню" };
+  var proofs = { token: "Пуговица", know: "Откуда", keep: "Не клади" };
   var answers = { end_who: "Кто там", end_hang: "Положила трубку", end_wait: "Подожду" };
 
   function track(id) {
     var step = steps[id];
     if (!step) return;
     var data = { "Шаг": step, "Экран": screens[id] || step };
-    var choice = outfits[state.outfit] && id === "ring" ? outfits[state.outfit] : replies[id] || answers[id];
+    var choice = outfits[state.outfit] && id === "ring" ? outfits[state.outfit] : replies[id] || answers[id] || asks[id] || proofs[id];
     if (choice) data["Выбор"] = choice;
     ensureStory();
     if (typeof ym !== "function") return;
@@ -81,8 +115,21 @@
     }
   }
 
+  function hasPaid() {
+    try { return localStorage.getItem("dmb-ep2") === "1"; } catch (e) { return false; }
+  }
+
   function draw(id) {
-    const scene = window.sceneById(id, state);
+    if (id === "cover") {
+      state.outfit = null;
+      state.reply = null;
+      state.answer = null;
+      state.ask = null;
+      state.proof = null;
+    }
+    var scene = window.sceneById(id, state);
+    if (scene && scene.paid && !hasPaid()) id = "price";
+    scene = window.sceneById(id, state);
     track(id);
     stage.replaceChildren();
     if (scene.type === "cover") {
@@ -95,6 +142,7 @@
     else if (scene.type === "wardrobe") drawWardrobe(scene);
     else if (scene.type === "lines") drawLines(scene);
     else if (scene.type === "morning") drawMorning(scene);
+    else if (scene.type === "price") drawPrice(scene);
     else drawProse(scene);
 
     if (scene.type === "call" && navigator.vibrate) navigator.vibrate(18);
@@ -230,13 +278,12 @@
     coda.hidden = true;
     stage.append(coda);
 
-    const next = document.createElement("a");
-    next.className = "go next-episode";
-    next.href = "https://t.me/dmbromance";
-    next.target = "_blank";
-    next.rel = "noopener";
-    next.textContent = "Вместе ждать продолжение";
-    next.addEventListener("click", function () { goal("episode2"); });
+    const next = el("button", "go next-episode", "Вторая серия");
+    next.type = "button";
+    next.addEventListener("click", function () {
+      goal("episode2");
+      go("day");
+    });
     stage.append(next);
 
     const mail = document.createElement("a");
@@ -252,9 +299,23 @@
       state.outfit = null;
       state.reply = null;
       state.answer = null;
+      state.ask = null;
+      state.proof = null;
       go("open");
     });
     stage.append(again);
+  }
+
+  function drawPrice(scene) {
+    stage.append(el("p", "price-sum", scene.sum));
+    stage.append(el("p", "lead", scene.note));
+    const button = el("button", "go", "Продолжить за 249 ₽");
+    button.type = "button";
+    button.addEventListener("click", function () {
+      goal("pay_click");
+      if (PAY_URL) location.href = PAY_URL;
+    });
+    stage.append(button);
   }
 
   function bubble(text, meta, mine) {
@@ -304,6 +365,15 @@
   browser.addEventListener("click", function () { goal("browser"); });
   document.body.append(browser);
 
+  if (/[?&]paid=1(?:&|$)/.test(location.search)) {
+    try { localStorage.setItem("dmb-ep2", "1"); } catch (e) {}
+    try {
+      var saved = JSON.parse(sessionStorage.getItem("dmb-state") || "null");
+      if (saved) Object.assign(state, saved);
+    } catch (e) {}
+  }
+
   if (location.pathname.indexOf("dmb-shop") !== -1) ensureStory();
-  draw("cover");
+  if (hasPaid() && /[?&]paid=1(?:&|$)/.test(location.search)) draw("back");
+  else draw("cover");
 })();
