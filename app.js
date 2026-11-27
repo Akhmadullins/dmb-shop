@@ -1,7 +1,9 @@
 (function () {
   const stage = document.querySelector("#stage");
   const state = { outfit: null, reply: null, answer: null, ask: null, proof: null };
-  var PAY_URL = "https://yookassa.ru/my/i/awirwm5QgFLx/l";
+  var payConfig = window.PAY_CONFIG || { supabaseUrl: "", anonKey: "" };
+  var paid = false;
+  var payMessage = "";
   let lock = false;
 
   function save() {
@@ -115,8 +117,44 @@
     }
   }
 
+  function payEmail() {
+    try { return localStorage.getItem("dmb-email") || ""; } catch (e) { return ""; }
+  }
+
+  function rememberEmail(value) {
+    try { localStorage.setItem("dmb-email", value); } catch (e) {}
+  }
+
+  function payReady() {
+    return Boolean(payConfig.supabaseUrl && payConfig.anonKey);
+  }
+
+  function payHeaders() {
+    return { apikey: payConfig.anonKey };
+  }
+
+  function payBase() {
+    return payConfig.supabaseUrl.replace(/\/$/, "") + "/functions/v1";
+  }
+
+  async function refreshAccess() {
+    var address = payEmail();
+    if (!address || !payReady()) {
+      paid = false;
+      return false;
+    }
+    try {
+      var response = await fetch(payBase() + "/access?email=" + encodeURIComponent(address), { headers: payHeaders() });
+      var data = await response.json();
+      paid = Boolean(data && data.paid);
+    } catch (e) {
+      paid = false;
+    }
+    return paid;
+  }
+
   function hasPaid() {
-    try { return localStorage.getItem("dmb-ep2") === "1"; } catch (e) { return false; }
+    return paid;
   }
 
   function draw(id) {
@@ -309,13 +347,55 @@
   function drawPrice(scene) {
     stage.append(el("p", "price-sum", scene.sum));
     stage.append(el("p", "lead", scene.note));
+    const input = document.createElement("input");
+    input.className = "pay-email";
+    input.type = "email";
+    input.inputMode = "email";
+    input.autocomplete = "email";
+    input.placeholder = "Почта";
+    input.value = payEmail();
+    stage.append(input);
     const button = el("button", "go", "Продолжить за 249 ₽");
     button.type = "button";
+    const status = el("p", "pay-status", payMessage || "Глава откроется на этой почте. На другом телефоне введи её ещё раз.");
     button.addEventListener("click", function () {
+      var address = input.value.trim().toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)) {
+        status.textContent = "Нужна почта, на неё откроется глава.";
+        return;
+      }
+      rememberEmail(address);
       goal("pay_click");
-      if (PAY_URL) location.href = PAY_URL;
+      if (!payReady()) {
+        status.textContent = "Оплата ещё подключается.";
+        return;
+      }
+      button.disabled = true;
+      status.textContent = "Проверяю оплату.";
+      refreshAccess().then(function (already) {
+        if (already) {
+          payMessage = "";
+          draw("back");
+          return;
+        }
+        status.textContent = "Открываю оплату.";
+        return fetch(payBase() + "/create-payment", {
+        method: "POST",
+        headers: Object.assign({ "Content-Type": "application/json" }, payHeaders()),
+        body: JSON.stringify({ email: address })
+      }).then(function (response) {
+        return response.json().then(function (data) {
+          if (!response.ok || !data.confirmation_url) throw new Error(data.message || "Оплата не открылась");
+          location.href = data.confirmation_url;
+        });
+        });
+      }).catch(function (error) {
+        button.disabled = false;
+        status.textContent = error.message || "Оплата не открылась";
+      });
     });
     stage.append(button);
+    stage.append(status);
   }
 
   function bubble(text, meta, mine) {
@@ -365,15 +445,38 @@
   browser.addEventListener("click", function () { goal("browser"); });
   document.body.append(browser);
 
-  if (/[?&]paid=1(?:&|$)/.test(location.search)) {
-    try { localStorage.setItem("dmb-ep2", "1"); } catch (e) {}
+  try { localStorage.removeItem("dmb-ep2"); } catch (e) {}
+
+  function restoreState() {
     try {
       var saved = JSON.parse(sessionStorage.getItem("dmb-state") || "null");
       if (saved) Object.assign(state, saved);
     } catch (e) {}
   }
 
+  async function waitForPayment() {
+    for (var attempt = 0; attempt < 8; attempt++) {
+      if (await refreshAccess()) return true;
+      await new Promise(function (resolve) { window.setTimeout(resolve, 2000); });
+    }
+    return false;
+  }
+
   if (location.pathname.indexOf("dmb-shop") !== -1) ensureStory();
-  if (hasPaid() && /[?&]paid=1(?:&|$)/.test(location.search)) draw("back");
-  else draw("cover");
+  if (/[?&]back=1(?:&|$)/.test(location.search)) {
+    restoreState();
+    payMessage = "Проверяю оплату.";
+    draw("price");
+    waitForPayment().then(function (ok) {
+      if (ok) {
+        payMessage = "";
+        draw("back");
+      } else {
+        payMessage = "Оплата пока не видна. Если деньги списались, подожди минуту и открой историю снова с той же почтой.";
+        draw("price");
+      }
+    });
+  } else {
+    refreshAccess().then(function () { draw("cover"); });
+  }
 })();
