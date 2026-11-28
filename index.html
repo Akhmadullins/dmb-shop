@@ -8,7 +8,12 @@
     <meta http-equiv="refresh" content="0;url=https://akhmadullins.github.io/eto-byl-son/">
     <link rel="canonical" href="https://akhmadullins.github.io/eto-byl-son/">
     <script>
-      location.replace("https://akhmadullins.github.io/eto-byl-son/" + location.search + location.hash);
+      (function () {
+        const qs = new URLSearchParams(location.search);
+        if (!qs.has("inapp")) qs.set("inapp", "1");
+        const tail = qs.toString();
+        location.replace("https://akhmadullins.github.io/eto-byl-son/" + (tail ? "?" + tail : "") + location.hash);
+      })();
     </script>
   </head>
   <body>
